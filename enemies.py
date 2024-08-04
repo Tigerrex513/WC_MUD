@@ -1,7 +1,11 @@
+import csv
+from typing import List, Dict
+
 class Enemy:
-    def __init__(self, name, health, damage, description):
+    def __init__(self, name: str, health: int, damage: int, description: str):
         self.name = name
         self.health = health
+        self.max_health = health
         self.damage = damage
         self.description = description
 
@@ -9,7 +13,7 @@ class Enemy:
         print(f"{self.name} attacks {target.name} for {self.damage} damage!")
         target.take_damage(self.damage)
 
-    def take_damage(self, amount):
+    def take_damage(self, amount: int):
         self.health -= amount
         print(f"The {self.name} took {amount} damage!")
         if self.health <= 0:
@@ -19,67 +23,43 @@ class Enemy:
         print(f"The {self.name} dies due to taking too much damage!")
 
     def __str__(self):
-        return f"{self.name} - HP: {self.health}, Damage: {self.damage}\n{self.description}"
+        return f"{self.name} - HP: {self.health}/{self.max_health}, Damage: {self.damage}\n{self.description}"
 
+class EnemyManager:
+    def __init__(self, csv_file: str):
+        self.enemies: Dict[str, Enemy] = {}
+        self.load_enemies(csv_file)
 
-class Badger(Enemy):
-    def __init__(self):
-        super().__init__(
-            name="Badger",
-            health=70,
-            damage=40,
-            description="A large, aggressive animal with powerful claws and teeth."
-        )
+    def load_enemies(self, csv_file: str):
+        with open(csv_file, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                enemy = Enemy(
+                    name=row['name'],
+                    health=int(row['health']),
+                    damage=int(row['damage']),
+                    description=row['description']
+                )
+                self.enemies[row['name']] = enemy
 
+    def get_enemy(self, name: str) -> Enemy:
+        return self.enemies.get(name)
 
-class Fox(Enemy):
-    def __init__(self):
-        super().__init__(
-            name="Fox",
-            health=30,
-            damage=8,
-            description="A cunning and agile predator known for its quick attacks."
-        )
+    def get_all_enemies(self) -> List[Enemy]:
+        return list(self.enemies.values())
 
-
-class Twoleg(Enemy):
-    def __init__(self):
-        super().__init__(
-            name="Twoleg",
-            health=100,
-            damage=5,
-            description="A towering human with strange tools and unpredictable behavior."
-        )
-
-
-class Eagle(Enemy):
-    def __init__(self):
-        super().__init__(
-            name="Eagle",
-            health=25,
-            damage=12,
-            description="A majestic bird of prey with sharp talons and a powerful beak."
-        )
-
-
-class Hawk(Enemy):
-    def __init__(self):
-        super().__init__(
-            name="Hawk",
-            health=20,
-            damage=10,
-            description="A swift and deadly bird of prey with keen eyesight."
-        )
-
-
-# Sample enemies list for easy access
-def get_sample_enemies():
-    return [Badger(), Fox(), Twoleg(), Eagle, Hawk()]
-
+def get_sample_enemies(enemy_manager: EnemyManager) -> List[Enemy]:
+    return [
+        enemy_manager.get_enemy("Badger"),
+        enemy_manager.get_enemy("Fox"),
+        enemy_manager.get_enemy("Twoleg"),
+        enemy_manager.get_enemy("Eagle"),
+        enemy_manager.get_enemy("Hawk")
+    ]
 
 if __name__ == "__main__":
     # Test the enemies
-    enemies = get_sample_enemies()
+    enemy_manager = EnemyManager('enemies.csv')
+    enemies = get_sample_enemies(enemy_manager)
     for enemy in enemies:
         print(enemy)
-

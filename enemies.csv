@@ -1,0 +1,11 @@
+name,health,damage,description
+Badger,70,40,"A large, aggressive animal with powerful claws and teeth."
+Fox,30,8,"A cunning and agile predator known for its quick attacks."
+Twoleg,100,5,"A towering human with strange tools and unpredictable behavior."
+Eagle,25,12,"A majestic bird of prey with sharp talons and a powerful beak."
+Hawk,20,10,"A swift and deadly bird of prey with keen eyesight."
+Dog,40,15,"A domesticated canine often found near Twoleg territories."
+Rat,10,5,"A small but numerous rodent that can be found in various territories."
+Snake,15,20,"A silent and deadly reptile with venomous fangs."
+Owl,18,8,"A nocturnal bird of prey with excellent hearing and silent flight."
+Wolf,60,30,"A pack-hunting predator with strong jaws and endurance."

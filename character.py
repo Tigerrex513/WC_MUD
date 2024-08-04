@@ -1,7 +1,7 @@
 import random
 import os
 import csv
-from zone_manager import ZoneManager
+from zones import ZoneManager
 
 class Character:
     def __init__(self, name, gender, strengths, weaknesses, strength, agility, knowledge, health=100):
@@ -14,7 +14,7 @@ class Character:
         self.knowledge = knowledge
         self.health = health
         self.current_zone_id = 1
-        self.zone_manager = ZoneManager('zones.csv')
+        self.zone_manager = None
 
     def take_damage(self, amount):
         self.health -= amount
@@ -146,6 +146,9 @@ Available exits: {', '.join(current_zone.exits.keys())}
             health=attributes['health']
         )
         character.current_zone_id = attributes['current_zone_id']
+        
+        # Initialize the zone_manager after loading
+        character.zone_manager = ZoneManager('zones.csv')
 
         print(f"Character {name} loaded from {filename}")
         return character
@@ -178,7 +181,7 @@ def character_creator():
     agility = int(input("Agility (1-10): "))
     knowledge = int(input("Knowledge (1-10): "))
     
-    # Create the character
+    # Create the character without initializing the zone_manager
     character = Character(name, gender, strengths, weaknesses, strength, agility, knowledge)
     
     # Print character details
@@ -190,8 +193,12 @@ def character_creator():
     
     print(f"\n{name} says, 'Thanks for creating me!'")
     
-    # Save the character
+    # Save the character before initializing the zone_manager
     character.save()
+    print(f"Character {name} has been saved.")
+    
+    # Now initialize the zone_manager
+    character.zone_manager = ZoneManager('zones.csv')
     
     return character
 

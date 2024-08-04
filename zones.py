@@ -24,16 +24,22 @@ class ZoneManager:
         with open(self.filename, 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
+                exits = {}
+                if row['exits']:  # Check if exits is not empty
+                    for exit in row['exits'].split('|'):
+                        parts = exit.split(':')
+                        if len(parts) == 2:
+                            exits[parts[0]] = int(parts[1])
                 zone = Zone(
                     id=int(row['id']),
                     name=row['name'],
                     type=row['type'],
                     description=row['description'],
                     coordinates=tuple(map(int, row['coordinates'].split(','))),
-                    enemies=row['enemies'].split('|'),
-                    scenarios=row['scenarios'].split('|'),
-                    features=row['features'].split('|'),
-                    exits={k: int(v) for k, v in [exit.split(':') for exit in row['exits'].split('|')]}
+                    enemies=row['enemies'].split('|') if row['enemies'] else [],
+                    scenarios=row['scenarios'].split('|') if row['scenarios'] else [],
+                    features=row['features'].split('|') if row['features'] else [],
+                    exits=exits
                 )
                 self.zones[zone.id] = zone
 

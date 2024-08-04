@@ -1,5 +1,5 @@
 from character import character_creator, Character
-from enemies import get_sample_enemies, Enemy
+from enemies import EnemyManager, get_sample_enemies
 import random
 
 def display_menu():
@@ -17,8 +17,9 @@ def main():
     # Create or load player character
     player = character_creator()
     
-    # Load sample enemies
-    enemies = get_sample_enemies()
+    # Initialize EnemyManager and load enemies
+    enemy_manager = EnemyManager('enemies.csv')
+    enemies = get_sample_enemies(enemy_manager)
     
     while True:
         display_menu()
