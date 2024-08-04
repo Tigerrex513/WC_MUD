@@ -1,54 +1,101 @@
-from character import character_creator
+from character import character_creator, Character
 from enemies import get_sample_enemies, Enemy
 import random
 
-'''
-TO DO LIST: 
-1) fix bug where you can't continue fighting the enemy after a failed run/hide 
-2) make it say "You cannot explore" when you encounter an enemy and try to explore
-3) when running the enemies file, the eagle information is missing
-
-'''
+def display_menu():
+    print("\nWhat do you want to do?")
+    print("1. Explore current zone")
+    print("2. Move to a different zone")
+    print("3. Describe character")
+    print("4. Save character")
+    print("5. Fight an enemy")
+    print("6. Quit")
 
 def main():
     print("Welcome to the Warrior Cats MUD!")
     
-    # Create player character
+    # Create or load player character
     player = character_creator()
     
     # Load sample enemies
     enemies = get_sample_enemies()
     
     while True:
-        print("\nWhat do you want to do?")
+        display_menu()
         action = input("> ").lower()
         
-        if action == "quit":
+        if action == "6" or action == "quit":
+            print("Saving character before quitting...")
+            player.save()
             print("Goodbye!")
             break
-        elif action == "explore":
-            print("You venture into the unknown...")
+        
+        elif action == "1" or action == "explore":
+            player.explore_current_zone()
+            
+            # Chance to encounter an enemy
+            if random.random() < 0.5:  # 50% chance of encounter
+                encounter = random.choice(enemies)
+                print(f"\nYou encounter a {encounter.name}!")
+                
+                while encounter.health > 0 and player.health > 0:
+                    print("\nWhat do you want to do?")
+                    print("1. Fight")
+                    print("2. Run")
+                    print("3. Hide")
+                    player_action = input("> ").lower()
+                    
+                    if player_action == "1" or player_action == "fight":
+                        player.fight(encounter)
+                    elif player_action == "2" or player_action == "run":
+                        if player.run():
+                            break
+                    elif player_action == "3" or player_action == "hide":
+                        if player.hide():
+                            break
+                    else:
+                        print("Unknown action. Try again.")
+                    
+                    if encounter.health > 0:
+                        encounter.attack(player)
+        
+        elif action == "2" or action == "move":
+            player.get_current_zone_info()
+            direction = input("Which direction do you want to go? ").lower()
+            player.move(direction)
+        
+        elif action == "3" or action == "describe":
+            print(player.describe())
+        
+        elif action == "4" or action == "save":
+            player.save()
+            print("Character saved successfully!")
+        
+        elif action == "5" or action == "fight":
             encounter = random.choice(enemies)
-            print(f"You encounter a {encounter.name}!")
+            print(f"\nYou encounter a {encounter.name}!")
             
             while encounter.health > 0 and player.health > 0:
                 print("\nWhat do you want to do?")
+                print("1. Fight")
+                print("2. Run")
+                print("3. Hide")
                 player_action = input("> ").lower()
                 
-                if player_action == "fight":
+                if player_action == "1" or player_action == "fight":
                     player.fight(encounter)
-                elif player_action == "run":
-                    player.run()
-                    break
-                elif player_action == "hide":
-                    player.hide()
-                    break
+                elif player_action == "2" or player_action == "run":
+                    if player.run():
+                        break
+                elif player_action == "3" or player_action == "hide":
+                    if player.hide():
+                        break
                 else:
                     print("Unknown action. Try again.")
-                    
+                
                 if encounter.health > 0:
                     encounter.attack(player)
-                    
+        
         else:
             print("Unknown action. Try again.")
 
