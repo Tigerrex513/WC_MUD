@@ -267,6 +267,10 @@ Available exits: {', '.join(current_zone.exits.keys())}
 def character_creator():
     print("Welcome to the Warrior Cats character creator!")
     
+    if not os.path.exists('zones.csv'):
+        print("Error: zones.csv file not found. Please ensure it exists in the same directory.")
+        return None
+
     # Ask if the user wants to create a new character or load an existing one
     choice = input("\nDo you want to create a new character or load an existing one? (new/load): ").lower()
     

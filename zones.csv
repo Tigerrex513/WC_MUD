@@ -1,4 +1,4 @@
-id,name,type,description,coordinates,enemies,scenarios,features,exits
+id,name,type,description,x_coord,y_coord,enemies,scenarios,features,exits
 1,Mossy Hollow,forest,"A damp, shaded area with moss-covered rocks and tall ferns.",0,0,mouse|squirrel,herb_gathering|hunting_lesson,large_oak_tree|small_stream,east:2|south:5
 2,Sunlit Clearing,meadow,"An open area bathed in warm sunlight, with tall grass and wildflowers.",1,0,rabbit|bird,training_exercise|border_patrol,fallen_log|flower_patch,west:1|east:3|south:6
 3,Whispering Pines,forest,"A quiet area filled with towering pine trees, their needles rustling in the breeze.",2,0,vole|thrush,tracking_practice|scent_marking,pine_cone_pile|resin_covered_trunk,west:2|east:4|south:7

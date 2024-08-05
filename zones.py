@@ -1,14 +1,15 @@
 import csv
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 class Zone:
-    def __init__(self, id: int, name: str, type: str, description: str, coordinates: Tuple[int, int],
+    def __init__(self, id: int, name: str, type: str, description: str, x_coord: int, y_coord: int,
                  enemies: List[str], scenarios: List[str], features: List[str], exits: Dict[str, int]):
         self.id = id
         self.name = name
         self.type = type
         self.description = description
-        self.coordinates = coordinates
+        self.x_coord = x_coord
+        self.y_coord = y_coord
         self.enemies = enemies
         self.scenarios = scenarios
         self.features = features
@@ -35,7 +36,8 @@ class ZoneManager:
                     name=row['name'],
                     type=row['type'],
                     description=row['description'],
-                    coordinates=tuple(map(int, row['coordinates'].split(','))),
+                    x_coord=int(row['x_coord']),
+                    y_coord=int(row['y_coord']),
                     enemies=row['enemies'].split('|') if row['enemies'] else [],
                     scenarios=row['scenarios'].split('|') if row['scenarios'] else [],
                     features=row['features'].split('|') if row['features'] else [],
@@ -46,9 +48,9 @@ class ZoneManager:
     def get_zone_by_id(self, zone_id: int) -> Zone:
         return self.zones.get(zone_id)
 
-    def get_zone_by_coordinates(self, coordinates: Tuple[int, int]) -> Zone:
+    def get_zone_by_coordinates(self, x_coord: int, y_coord: int) -> Zone:
         for zone in self.zones.values():
-            if zone.coordinates == coordinates:
+            if zone.x_coord == x_coord and zone.y_coord == y_coord:
                 return zone
         return None
 
@@ -60,7 +62,7 @@ class ZoneManager:
 
     def save_zones(self):
         with open(self.filename, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=['id', 'name', 'type', 'description', 'coordinates', 'enemies', 'scenarios', 'features', 'exits'])
+            writer = csv.DictWriter(f, fieldnames=['id', 'name', 'type', 'description', 'x_coord', 'y_coord', 'enemies', 'scenarios', 'features', 'exits'])
             writer.writeheader()
             for zone in self.zones.values():
                 writer.writerow({
@@ -68,7 +70,8 @@ class ZoneManager:
                     'name': zone.name,
                     'type': zone.type,
                     'description': zone.description,
-                    'coordinates': f"{zone.coordinates[0]},{zone.coordinates[1]}",
+                    'x_coord': zone.x_coord,
+                    'y_coord': zone.y_coord,
                     'enemies': '|'.join(zone.enemies),
                     'scenarios': '|'.join(zone.scenarios),
                     'features': '|'.join(zone.features),

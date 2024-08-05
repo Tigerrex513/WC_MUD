@@ -22,7 +22,7 @@ def display_help():
     print("quit - Save and exit the game")
 
 def main():
-    print("/n/nWelcome to the Warrior Cats MUD!/n/n")
+    print("\n\nWelcome to the Warrior Cats MUD!\n\n")
     
     # Create or load player character
     player = character_creator()
@@ -39,19 +39,19 @@ def main():
     
     while True:
         print(f"\nYou are in {current_zone.name}. {current_zone.description}")
-        print("Available exits:", current_zone.exits)  # Debug output
+        print("\nAvailable exits:", current_zone.exits)  # Debug output
         print("\nWhat do you want to do?")
         print("You can [look], [move], [explore] or type [help] for more options.")
-        print("Type 'help' for a list of commands.")
+        print("Type 'help' for a list of commands.\n")
         action = input("> ").lower().split()
         
         command = action[0] if action else ""
         args = action[1:] if len(action) > 1 else []
         
         if command == "quit":
-            print("/nSaving character before quitting...")
+            print("\nSaving character before quitting...")
             player.save()
-            print("/n/nGoodbye!")
+            print("\nGoodbye!\n")
             break
         
         elif command == "help":
