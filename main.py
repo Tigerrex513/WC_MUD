@@ -1,5 +1,7 @@
 import time
 import random
+import queue
+import threading
 from character import character_creator
 from enemies import EnemyManager, get_sample_enemies
 from zones import ZoneManager
@@ -19,6 +21,27 @@ def get_time_passage_message():
         "The shadows shift slightly.",
     ]
     return random.choice(messages)
+
+def input_with_timeout(timeout):
+    import select
+    import sys
+
+    input_queue = queue.Queue()
+
+    def get_input():
+        input_queue.put(sys.stdin.read(1))
+
+    thread = threading.Thread(target=get_input)
+    thread.daemon = True
+    thread.start()
+
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if not input_queue.empty():
+            return input_queue.get()
+        time.sleep(0.1)
+
+    return None
 
 def main():
     print("\nWelcome to the Warrior Cats MUD!")
@@ -64,7 +87,7 @@ def main():
             user_input = input_with_timeout(TICK_DURATION)
 
         # Process complete commands
-        if user_input != "":
+        if user_input is not None and user_input.strip() != "":
             command_parts = user_input.lower().split()
             command = command_parts[0] if command_parts else ""
             args = command_parts[1:] if len(command_parts) > 1 else []
@@ -85,15 +108,6 @@ def main():
             print("Type 'help' for a list of commands.")
             
             user_input = ""  # Reset input buffer
-
-def input_with_timeout(timeout):
-    import select
-    import sys
-
-    rlist, _, _ = select.select([sys.stdin], [], [], timeout)
-    if rlist:
-        return sys.stdin.readline().strip()
-    return ""
 
 if __name__ == "__main__":
     main()
