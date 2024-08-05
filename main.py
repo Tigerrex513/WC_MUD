@@ -7,6 +7,7 @@ from command_handler import CommandHandler
 from game_state import GameState
 
 TICK_DURATION = 6  # seconds
+MESSAGE_INTERVAL = 30  # Show a time passage message every 30 seconds
 
 def get_time_passage_message():
     messages = [
@@ -26,13 +27,14 @@ def main():
     enemy_manager = EnemyManager('enemies.csv')
     enemies = get_sample_enemies(enemy_manager)
     zone_manager = ZoneManager('zones.csv')
-    zones = zone_manager.zones  # Assuming ZoneManager has a zones attribute
-
+    
     try:
-        game_state = GameState.load_state(player, zones, enemies)
+        game_state = GameState.load_state(player, zone_manager.all_zones, enemies)
         print("Game state loaded successfully.")
     except FileNotFoundError:
         starting_zone = zone_manager.get_zone_by_id(1)
+        if starting_zone is None:
+            raise ValueError("Starting zone (id: 1) not found in zones.csv")
         game_state = GameState(player, starting_zone, enemies)
         print("New game state created.")
 
@@ -40,7 +42,10 @@ def main():
     
     last_tick_time = time.time()
     last_time_message = time.time()
-    MESSAGE_INTERVAL = 15  # Show a time passage message every minute
+    user_input = ""
+
+    print(f"\nYou are in {game_state.current_zone.name}. {game_state.current_zone.description}")
+    print("\nWhat do you want to do? Use [help] for a list of commands.")
 
     while True:
         current_time = time.time()
@@ -51,27 +56,44 @@ def main():
             last_tick_time = current_time
 
             if current_time - last_time_message >= MESSAGE_INTERVAL:
-                print(f"\n{get_time_passage_message()}\n")
+                print(f"\n{get_time_passage_message()}")
                 last_time_message = current_time
 
-        print(f"\nYou are in {game_state.current_zone.name}. {game_state.current_zone.description}")
-        print("What do you want to do?")
-        print("Type 'help' for a list of commands.\n")
-        
-        user_input = input("> ").lower().split()
-        command = user_input[0] if user_input else ""
-        args = user_input[1:] if len(user_input) > 1 else []
-        
-        result = command_handler.handle_command(command, args)
-        
-        if result == "quit":
-            print("\nSaving game state before quitting...")
-            game_state.save_state()
-            player.save()
-            print("Goodbye!")
-            break
-        else:
-            print(result)
+        # Non-blocking input check
+        if user_input == "":
+            user_input = input_with_timeout(TICK_DURATION)
+
+        # Process complete commands
+        if user_input != "":
+            command_parts = user_input.lower().split()
+            command = command_parts[0] if command_parts else ""
+            args = command_parts[1:] if len(command_parts) > 1 else []
+            
+            result = command_handler.handle_command(command, args)
+            
+            if result == "quit":
+                print("\nSaving game state before quitting...")
+                game_state.save_state()
+                player.save()
+                print("Goodbye!")
+                break
+            else:
+                print(result)
+            
+            print(f"\nYou are in {game_state.current_zone.name}. {game_state.current_zone.description}")
+            print("\nWhat do you want to do?")
+            print("Type 'help' for a list of commands.")
+            
+            user_input = ""  # Reset input buffer
+
+def input_with_timeout(timeout):
+    import select
+    import sys
+
+    rlist, _, _ = select.select([sys.stdin], [], [], timeout)
+    if rlist:
+        return sys.stdin.readline().strip()
+    return ""
 
 if __name__ == "__main__":
     main()

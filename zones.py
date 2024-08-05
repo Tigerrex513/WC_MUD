@@ -1,5 +1,5 @@
 import csv
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 class Zone:
     def __init__(self, id: int, name: str, type: str, description: str, x_coord: int, y_coord: int,
@@ -45,18 +45,18 @@ class ZoneManager:
                 )
                 self.zones[zone.id] = zone
 
-    def get_zone_by_id(self, zone_id: int) -> Zone:
+    def get_zone_by_id(self, zone_id: int) -> Optional[Zone]:
         return self.zones.get(zone_id)
 
-    def get_zone_by_coordinates(self, x_coord: int, y_coord: int) -> Zone:
+    def get_zone_by_coordinates(self, x_coord: int, y_coord: int) -> Optional[Zone]:
         for zone in self.zones.values():
             if zone.x_coord == x_coord and zone.y_coord == y_coord:
                 return zone
         return None
 
-    def move(self, current_zone_id: int, direction: str) -> Zone:
+    def move(self, current_zone_id: int, direction: str) -> Optional[Zone]:
         current_zone = self.get_zone_by_id(current_zone_id)
-        if direction in current_zone.exits:
+        if current_zone and direction in current_zone.exits:
             return self.get_zone_by_id(current_zone.exits[direction])
         return None
 
@@ -77,3 +77,7 @@ class ZoneManager:
                     'features': '|'.join(zone.features),
                     'exits': '|'.join([f"{k}:{v}" for k, v in zone.exits.items()])
                 })
+
+    @property
+    def all_zones(self) -> List[Zone]:
+        return list(self.zones.values())

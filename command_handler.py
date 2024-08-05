@@ -10,38 +10,27 @@ class CommandHandler:
         pass
 
     def handle_command(self, command, args):
-        if command == "quit":
-            return self.quit()
-        elif command == "help":
-            return self.display_help()
-        elif command == "explore":
-            return self.explore()
-        elif command == "move":
-            return self.move(args)
-        elif command == "look":
-            return self.look(args)
-        elif command == "inventory":
-            return self.inventory()
-        elif command == "take":
-            return self.take(args)
-        elif command == "drop":
-            return self.drop(args)
-        elif command == "equip":
-            return self.equip(args)
-        elif command == "remove":
-            return self.remove(args)
-        elif command == "say":
-            return self.say(args)
-        elif command == "shout":
-            return self.shout(args)
-        elif command == "attack":
-            return self.attack()
-        elif command == "use":
-            return self.use(args)
-        elif command == "score":
-            return self.score()
-        elif command == "save":
-            return self.save()
+        commands = {
+            "quit": self.quit,
+            "help": self.display_help,
+            "explore": self.explore,
+            "move": self.move,
+            "look": self.look,
+            "inventory": self.inventory,
+            "take": self.take,
+            "drop": self.drop,
+            "equip": self.equip,
+            "remove": self.remove,
+            "say": self.say,
+            "shout": self.shout,
+            "attack": self.attack,
+            "use": self.use,
+            "score": self.score,
+            "save": self.save
+        }
+        
+        if command in commands:
+            return commands[command](args) if args else commands[command]()
         else:
             return "Unknown command. Type 'help' for a list of commands."
 
@@ -53,8 +42,8 @@ class CommandHandler:
         return """
 Available commands:
 explore - Explore the current zone
-move - Move to a different direction
-look - Examine your surroundings
+move [direction] - Move to a different direction
+look [target] - Examine your surroundings or a specific target
 inventory - Check your inventory
 take [item] - Pick up an item
 drop [item] - Drop an item
@@ -95,58 +84,83 @@ quit - Save and exit the game
             return "You can't go that way."
 
     def look(self, args):
+        current_zone = self.game_state.current_zone
         if args:
-            return self.game_state.player.look(args[0])
+            target = args[0]
+            # Implement logic to describe the target
+            return f"You examine the {target}."
         else:
-            return self.game_state.player.look()
+            return f"You are in {current_zone.name}. {current_zone.description}"
 
     def inventory(self):
-        return self.game_state.player.inventory_check()
+        player = self.game_state.player
+        if player.inventory:
+            return "Your inventory contains: " + ", ".join(player.inventory)
+        else:
+            return "Your inventory is empty."
 
     def take(self, args):
         if not args:
             return "What do you want to take?"
-        return self.game_state.player.take(args[0])
+        item = args[0]
+        # Implement logic to check if item is in the current zone and can be picked up
+        return self.game_state.player.add_to_inventory(item)
 
     def drop(self, args):
         if not args:
             return "What do you want to drop?"
-        return self.game_state.player.drop(args[0])
+        item = args[0]
+        return self.game_state.player.remove_from_inventory(item)
 
     def equip(self, args):
         if not args:
             return "What do you want to equip?"
-        return self.game_state.player.equip(args[0])
+        item = args[0]
+        return self.game_state.player.equip_item(item)
 
     def remove(self, args):
         if not args:
             return "What do you want to remove?"
-        return self.game_state.player.remove(args[0])
+        item = args[0]
+        return self.game_state.player.unequip_item(item)
 
     def say(self, args):
         if not args:
             return "What do you want to say?"
-        return self.game_state.player.say(" ".join(args))
+        message = " ".join(args)
+        return f"{self.game_state.player.name} says: {message}"
 
     def shout(self, args):
         if not args:
             return "What do you want to shout?"
-        return self.game_state.player.shout(" ".join(args))
+        message = " ".join(args)
+        return f"{self.game_state.player.name} shouts: {message}"
 
     def attack(self):
         if not self.game_state.current_enemy:
             self.game_state.current_enemy = random.choice(self.game_state.enemies)
-        return self.game_state.player.fight(self.game_state.current_enemy)
+        enemy = self.game_state.current_enemy
+        player = self.game_state.player
+        result = f"{player.name} attacks the {enemy.name}!\n"
+        result += enemy.take_damage(player.strength)
+        if enemy.health > 0:
+            result += f"\n{enemy.name} counterattacks!\n"
+            result += player.take_damage(enemy.damage)
+        else:
+            result += f"\n{enemy.name} has been defeated!"
+            self.game_state.current_enemy = None
+        return result
 
     def use(self, args):
         if not args:
             return "What do you want to use?"
-        return self.game_state.player.use(args[0])
+        item = args[0]
+        # Implement item usage logic
+        return f"You use the {item}."
 
     def score(self):
-        return self.game_state.player.score()
+        return self.game_state.player.get_stats()
 
     def save(self):
         self.game_state.save_state()
-        self.game_state.player.save()
-        return "Game state and character saved successfully!"
+        return self.game_state.player.save()
