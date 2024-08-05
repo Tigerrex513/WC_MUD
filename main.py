@@ -1,5 +1,6 @@
 from character import character_creator, Character
 from enemies import EnemyManager, get_sample_enemies
+from zones import ZoneManager
 import random
 
 def display_help():
@@ -30,7 +31,15 @@ def main():
     enemy_manager = EnemyManager('enemies.csv')
     enemies = get_sample_enemies(enemy_manager)
     
+    # Initialize ZoneManager
+    zone_manager = ZoneManager('zones.csv')
+    
+    # Set the initial zone
+    current_zone = zone_manager.get_zone_by_id(1)  # Start in the first zone
+    
     while True:
+        print(f"\nYou are in {current_zone.name}. {current_zone.description}")
+        print("Available exits:", current_zone.exits)  # Debug output
         print("\nWhat do you want to do?")
         print("You can [look], [move], [explore] or type [help] for more options.")
         print("Type 'help' for a list of commands.")
@@ -76,9 +85,13 @@ def main():
                         encounter.attack(player)
         
         elif command == "move":
-            player.get_current_zone_info()
             direction = input("Which direction do you want to go? ").lower()
-            player.move(direction)
+            new_zone = zone_manager.move(current_zone.id, direction)
+            if new_zone:
+                current_zone = new_zone
+                print(f"You moved to {current_zone.name}.")
+            else:
+                print("You can't go that way.")
         
         elif command == "look":
             if args:
@@ -148,3 +161,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

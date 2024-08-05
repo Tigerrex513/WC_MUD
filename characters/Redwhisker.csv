@@ -1,0 +1,12 @@
+attribute,value
+name,Redwhisker
+gender,tom
+strengths,"Eager, loyal, kind"
+weaknesses,clumsy
+strength,4
+agility,2
+knowledge,6
+health,-12
+current_zone_id,1
+inventory,[]
+equipped_items,{}
