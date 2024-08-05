@@ -96,10 +96,6 @@ class Character:
         print(f"You attack {target}!")
         # Combat logic is already in the 'fight' method
 
-    def cast(self, spell):
-        print(f"You attempt to cast {spell}.")
-        # TODO: Implement magic system
-
     def use(self, item):
         print(f"You attempt to use {item}.")
         # TODO: Implement item usage logic
@@ -265,14 +261,8 @@ Available exits: {', '.join(current_zone.exits.keys())}
         return f"{self.name} - Str: {self.strength}, Agi: {self.agility}, Kno: {self.knowledge}, HP: {self.health}"
 
 def character_creator():
-    print("Welcome to the Warrior Cats character creator!")
-    
-    if not os.path.exists('zones.csv'):
-        print("Error: zones.csv file not found. Please ensure it exists in the same directory.")
-        return None
-
     # Ask if the user wants to create a new character or load an existing one
-    choice = input("\nDo you want to create a new character or load an existing one? (new/load): ").lower()
+    choice = input("Do you want to create a new character or load an existing one? (new/load): ").lower()
     
     if choice == 'load':
         name = input("Enter the name of the character to load: ").lower()

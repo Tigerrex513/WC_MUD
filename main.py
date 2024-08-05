@@ -1,164 +1,77 @@
-from character import character_creator, Character
+import time
+import random
+from character import character_creator
 from enemies import EnemyManager, get_sample_enemies
 from zones import ZoneManager
-import random
+from command_handler import CommandHandler
+from game_state import GameState
 
-def display_help():
-    print("\nAvailable commands:")
-    print("explore - Explore the current zone")
-    print("move - Move to a different direction")
-    print("look - Examine your surroundings")
-    print("inventory - Check your inventory")
-    print("take [item] - Pick up an item")
-    print("drop [item] - Drop an item")
-    print("equip [item] - Equip an item")
-    print("remove [item] - Remove an equipped item")
-    print("say [message] - Say something")
-    print("shout [message] - Shout a message")
-    print("attack - Initiate combat with an enemy")
-    print("use [item] - Use an item")
-    print("score - Check your character stats")
-    print("save - Save your character")
-    print("quit - Save and exit the game")
+TICK_DURATION = 6  # seconds
+
+def get_time_passage_message():
+    messages = [
+        "Time passes...",
+        "The world around you continues to move.",
+        "You sense the passage of time.",
+        "The sun inches across the sky.",
+        "A gentle breeze reminds you that time is flowing.",
+        "The shadows shift slightly.",
+    ]
+    return random.choice(messages)
 
 def main():
-    print("\n\nWelcome to the Warrior Cats MUD!\n\n")
+    print("\nWelcome to the Warrior Cats MUD!")
     
-    # Create or load player character
     player = character_creator()
-    
-    # Initialize EnemyManager and load enemies
     enemy_manager = EnemyManager('enemies.csv')
     enemies = get_sample_enemies(enemy_manager)
-    
-    # Initialize ZoneManager
     zone_manager = ZoneManager('zones.csv')
+    zones = zone_manager.zones  # Assuming ZoneManager has a zones attribute
+
+    try:
+        game_state = GameState.load_state(player, zones, enemies)
+        print("Game state loaded successfully.")
+    except FileNotFoundError:
+        starting_zone = zone_manager.get_zone_by_id(1)
+        game_state = GameState(player, starting_zone, enemies)
+        print("New game state created.")
+
+    command_handler = CommandHandler(game_state, zone_manager)
     
-    # Set the initial zone
-    current_zone = zone_manager.get_zone_by_id(1)  # Start in the first zone
-    
+    last_tick_time = time.time()
+    last_time_message = time.time()
+    MESSAGE_INTERVAL = 15  # Show a time passage message every minute
+
     while True:
-        print(f"\nYou are in {current_zone.name}. {current_zone.description}")
-        print("\nAvailable exits:", current_zone.exits)  # Debug output
-        print("\nWhat do you want to do?")
-        print("You can [look], [move], [explore] or type [help] for more options.")
+        current_time = time.time()
+        
+        if current_time - last_tick_time >= TICK_DURATION:
+            game_state.update_time()
+            command_handler.update_on_tick()
+            last_tick_time = current_time
+
+            if current_time - last_time_message >= MESSAGE_INTERVAL:
+                print(f"\n{get_time_passage_message()}\n")
+                last_time_message = current_time
+
+        print(f"\nYou are in {game_state.current_zone.name}. {game_state.current_zone.description}")
+        print("What do you want to do?")
         print("Type 'help' for a list of commands.\n")
-        action = input("> ").lower().split()
         
-        command = action[0] if action else ""
-        args = action[1:] if len(action) > 1 else []
+        user_input = input("> ").lower().split()
+        command = user_input[0] if user_input else ""
+        args = user_input[1:] if len(user_input) > 1 else []
         
-        if command == "quit":
-            print("\nSaving character before quitting...")
+        result = command_handler.handle_command(command, args)
+        
+        if result == "quit":
+            print("\nSaving game state before quitting...")
+            game_state.save_state()
             player.save()
-            print("\nGoodbye!\n")
+            print("Goodbye!")
             break
-        
-        elif command == "help":
-            display_help()
-        
-        elif command == "explore":
-            player.explore_current_zone()
-            
-            # Chance to encounter an enemy
-            if random.random() < 0.5:  # 50% chance of encounter
-                encounter = random.choice(enemies)
-                print(f"\nYou encounter a {encounter.name}!")
-                
-                while encounter.health > 0 and player.health > 0:
-                    print("\nWhat do you want to do?")
-                    print("You can [fight], [run], or [hide].")
-                    player_action = input("> ").lower()
-                    
-                    if player_action == "fight":
-                        player.fight(encounter)
-                    elif player_action == "run":
-                        if player.run():
-                            break
-                    elif player_action == "hide":
-                        if player.hide():
-                            break
-                    else:
-                        print("Unknown action. Try again.")
-                    
-                    if encounter.health > 0:
-                        encounter.attack(player)
-        
-        elif command == "move":
-            direction = input("Which direction do you want to go? ").lower()
-            new_zone = zone_manager.move(current_zone.id, direction)
-            if new_zone:
-                current_zone = new_zone
-                print(f"You moved to {current_zone.name}.")
-            else:
-                print("You can't go that way.")
-        
-        elif command == "look":
-            if args:
-                player.look(args[0])
-            else:
-                player.look()
-        
-        elif command == "inventory":
-            player.inventory_check()
-        
-        elif command == "take":
-            if args:
-                player.take(args[0])
-            else:
-                print("What do you want to take?")
-        
-        elif command == "drop":
-            if args:
-                player.drop(args[0])
-            else:
-                print("What do you want to drop?")
-        
-        elif command == "equip":
-            if args:
-                player.equip(args[0])
-            else:
-                print("What do you want to equip?")
-        
-        elif command == "remove":
-            if args:
-                player.remove(args[0])
-            else:
-                print("What do you want to remove?")
-        
-        elif command == "say":
-            if args:
-                player.say(" ".join(args))
-            else:
-                print("What do you want to say?")
-        
-        elif command == "shout":
-            if args:
-                player.shout(" ".join(args))
-            else:
-                print("What do you want to shout?")
-        
-        elif command == "attack":
-            encounter = random.choice(enemies)
-            print(f"\nYou encounter a {encounter.name}!")
-            player.fight(encounter)
-        
-        elif command == "use":
-            if args:
-                player.use(args[0])
-            else:
-                print("What do you want to use?")
-        
-        elif command == "score":
-            player.score()
-        
-        elif command == "save":
-            player.save()
-            print("Character saved successfully!")
-        
         else:
-            print("Unknown action. Type 'help' for a list of commands.")
+            print(result)
 
 if __name__ == "__main__":
     main()
-
