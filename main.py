@@ -1,7 +1,5 @@
 import time
 import random
-import queue
-import threading
 from character import character_creator
 from enemies import EnemyManager, get_sample_enemies
 from zones import ZoneManager
@@ -22,27 +20,6 @@ def get_time_passage_message():
     ]
     return random.choice(messages)
 
-def input_with_timeout(timeout):
-    import select
-    import sys
-
-    input_queue = queue.Queue()
-
-    def get_input():
-        input_queue.put(sys.stdin.read(1))
-
-    thread = threading.Thread(target=get_input)
-    thread.daemon = True
-    thread.start()
-
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        if not input_queue.empty():
-            return input_queue.get()
-        time.sleep(0.1)
-
-    return None
-
 def main():
     print("\nWelcome to the Warrior Cats MUD!")
     
@@ -52,7 +29,7 @@ def main():
     zone_manager = ZoneManager('zones.csv')
     
     try:
-        game_state = GameState.load_state(player, zone_manager.all_zones, enemies)
+        game_state = GameState.load_state(player, zone_manager.get_all_zones(), enemies)
         print("Game state loaded successfully.")
     except FileNotFoundError:
         starting_zone = zone_manager.get_zone_by_id(1)
@@ -87,12 +64,13 @@ def main():
             user_input = input_with_timeout(TICK_DURATION)
 
         # Process complete commands
-        if user_input is not None and user_input.strip() != "":
+        if user_input != "":
             command_parts = user_input.lower().split()
             command = command_parts[0] if command_parts else ""
             args = command_parts[1:] if len(command_parts) > 1 else []
             
             result = command_handler.handle_command(command, args)
+            print(f"Command: {command}, Args: {args}, Result: {result}")  # Debug print
             
             if result == "quit":
                 print("\nSaving game state before quitting...")
@@ -108,6 +86,15 @@ def main():
             print("Type 'help' for a list of commands.")
             
             user_input = ""  # Reset input buffer
+
+def input_with_timeout(timeout):
+    import select
+    import sys
+
+    rlist, _, _ = select.select([sys.stdin], [], [], timeout)
+    if rlist:
+        return sys.stdin.readline().strip()
+    return ""
 
 if __name__ == "__main__":
     main()
