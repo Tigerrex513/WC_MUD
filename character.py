@@ -14,7 +14,7 @@ class Character:
         self.knowledge = knowledge
         self.health = health
         self.current_zone_id = 1
-        self.zone_manager = None
+        self.zone_manager = ZoneManager('zones.csv')
         self.inventory = []
         self.equipped_items = {}
 
@@ -48,10 +48,11 @@ class Character:
         return success
 
     def move(self, direction):
+        print(f"Attempting to move {direction} from zone {self.current_zone_id}")
         new_zone = self.zone_manager.move(self.current_zone_id, direction)
         if new_zone:
             self.current_zone_id = new_zone.id
-            print(f"You have moved to {new_zone.name}.")
+            print(f"You have moved to {new_zone.name}. {new_zone.description}")
             self.look()
         else:
             print("You can't go that way.")
@@ -193,7 +194,7 @@ Current Location: {current_zone.name}
 Zone Type: {current_zone.type}
 
 Character Status:
-{self.name} is a {self.gender} cat with {self.health} health points. 
+{self.name} is a {self.gender} with {self.health} health points. 
 They excel in {self.strengths}, but struggle with {self.weaknesses}.
 Currently, they are in {current_zone.name}, a {current_zone.type} zone.
 
@@ -230,7 +231,7 @@ Available exits: {', '.join(current_zone.exits.keys())}
             return None
 
         attributes = {}
-        with open(filename, 'r') as file:
+        with open(filename, 'r') as file, open('zones.csv', 'r') as zone_file:
             reader = csv.reader(file)
             next(reader)  # Skip the header row
             for row in reader:
@@ -288,7 +289,7 @@ def character_creator():
     agility = int(input("Agility (1-10): "))
     knowledge = int(input("Knowledge (1-10): "))
     
-    # Create the character without initializing the zone_manager
+    # Create the character
     character = Character(name, gender, strengths, weaknesses, strength, agility, knowledge)
     
     # Print character details
@@ -300,12 +301,9 @@ def character_creator():
     
     print(f"\n{name} says, 'Thanks for creating me!'")
     
-    # Save the character before initializing the zone_manager
+    # Save the character
     character.save()
     print(f"Character {name} has been saved.")
-    
-    # Now initialize the zone_manager
-    character.zone_manager = ZoneManager('zones.csv')
     
     return character
 
